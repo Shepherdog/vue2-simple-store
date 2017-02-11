@@ -34,7 +34,7 @@
 
       Vue.mixin({
         beforeCreate: function() {
-          Vue.util.defineReactive(this,'$state', theState);
+          Vue.util.defineReactive(this,'state', theState);
           Vue.util.defineReactive(this,'$action', {trigger: function(eventName,val) {
             var theColon = eventName.search(':');
             var storeName = eventName.substr(0,theColon);
