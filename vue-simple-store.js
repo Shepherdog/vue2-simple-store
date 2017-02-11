@@ -15,8 +15,8 @@
 
       if(opt.debug) console.info('[Vue Simple Store]: In Debug Mode');
 
-      var theStores = {}
-      var theState = {}
+      var theStores = {};
+      var theState = {};
 
       for (var i = 0; i < opt.stores.length; i++) {
 
@@ -32,33 +32,28 @@
         delete theStores[opt.stores[i].name].name;
       }
 
-      plugin.mixin = {};
+      Vue.mixin({
+        beforeCreate: function() {
+          Vue.util.defineReactive(this,'$state', theState);
+          Vue.util.defineReactive(this,'$action', {trigger: function(eventName,val) {
+            var theColon = eventName.search(':');
+            var storeName = eventName.substr(0,theColon);
+            var theEvent = eventName.substr(theColon+1,eventName.length);
 
-      plugin.mixin.init = function(){
-        Vue.util.defineReactive(this,'state',theState);
-        Vue.util.defineReactive(this,'$action', function(eventName,val){
+            if(theStores[storeName] === undefined) return console.warn("[Vue Simple Store]: the "+storeName+" store doesn't exist");
 
-          var theColon = eventName.search(':');
-          var storeName = eventName.substr(0,theColon);
-          var theEvent = eventName.substr(theColon+1,eventName.length)
+            // Trigger the store
+            theStores[storeName][theEvent](val);
 
-          if(theStores[storeName] === undefined) return console.warn("[Vue Simple Store]: the "+storeName+" store doesn't exist");
+            if(opt.debug){
+              if(val === undefined) console.info(eventName);
+              else console.info(eventName,val);
+            }
+          }});
+        }
+      })
 
-          // Trigger the store
-          theStores[storeName][theEvent](val);
-
-          if(opt.debug){
-            if(val === undefined) console.info(eventName);
-            else console.info(eventName,val);
-          }
-
-        });
-      };
-
-      // Merge mixin to VM via vue options
-      Vue.options = Vue.util.mergeOptions(Vue.options, plugin.mixin)
     }
-
   };
 
   // If support node / ES6 module
